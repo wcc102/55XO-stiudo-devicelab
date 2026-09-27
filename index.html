@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设备检测实验室</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #080b12;
+    --panel: rgba(21, 28, 41, .72);
+    --panel-2: rgba(30, 39, 55, .6);
+    --soft: rgba(13, 19, 30, .6);
+    --line: rgba(122, 142, 178, .16);
+    --line-2: rgba(122, 142, 178, .3);
+    --text: #eaf0fa;
+    --muted: #93a0b8;
+    --accent: #5b8dff;
+    --accent-2: #31e3a7;
+    --score: #ff9a4d;
+    --radius: 18px;
+    --shadow: 0 18px 44px rgba(0, 0, 0, .45);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0; z-index: -1;
+    background:
+      radial-gradient(900px 520px at 12% -8%, rgba(91,141,255,.22), transparent 60%),
+      radial-gradient(820px 520px at 92% -4%, rgba(49,227,167,.15), transparent 58%),
+      radial-gradient(1100px 760px at 50% 115%, rgba(91,141,255,.10), transparent 62%);
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 30px 20px 72px; }
+
+  /* ---------- header ---------- */
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 13px; }
+  .logo {
+    width: 44px; height: 44px; border-radius: 13px; flex: none;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 10px 28px rgba(91,141,255,.35);
+    display: grid; place-items: center; color: #06121f; font-weight: 900; letter-spacing: .5px;
+  }
+  h1 { font-size: 21px; margin: 0; letter-spacing: .3px; font-weight: 800; }
+  header .tagline { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+  .secure-pill {
+    font-size: 12px; color: var(--muted); border: 1px solid var(--line);
+    background: var(--soft); padding: 7px 14px; border-radius: 999px; white-space: nowrap;
+  }
+
+  /* ---------- tabs ---------- */
+  .tabs {
+    display: inline-flex; gap: 4px; margin: 26px 0 22px;
+    background: var(--soft); border: 1px solid var(--line);
+    padding: 5px; border-radius: 14px; backdrop-filter: blur(10px);
+  }
+  .tab {
+    border: 0; background: transparent; color: var(--muted);
+    padding: 10px 22px; border-radius: 10px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: color .18s, background .18s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: #06121f;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow: 0 6px 18px rgba(91,141,255,.3);
+  }
+  .hidden { display: none !important; }
+
+  /* ---------- cards ---------- */
+  .card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 22px;
+    box-shadow: var(--shadow); backdrop-filter: blur(14px);
+  }
+  .card + .card { margin-top: 16px; }
+
+  /* ---------- summary ---------- */
+  .summary-name { font-size: 22px; font-weight: 800; letter-spacing: .2px; }
+  .summary-sub { color: var(--muted); font-size: 13px; margin-top: 5px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 12px; margin-top: 20px; }
+  .kv {
+    background: var(--soft); border: 1px solid var(--line); border-radius: 13px;
+    padding: 13px 15px; transition: transform .18s, border-color .18s;
+  }
+  .kv:hover { transform: translateY(-2px); border-color: var(--line-2); }
+  .kv .k { color: var(--muted); font-size: 11.5px; letter-spacing: .4px; }
+  .kv .v { font-size: 14.5px; font-weight: 700; margin-top: 5px; word-break: break-word; }
+
+  /* ---------- buttons ---------- */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .btn {
+    border: 1px solid var(--line); background: var(--panel-2); color: var(--text);
+    padding: 11px 18px; border-radius: 11px; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: transform .15s, border-color .15s, filter .15s;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:hover { transform: translateY(-1px); border-color: var(--line-2); }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent; color: #06121f;
+    box-shadow: 0 10px 24px rgba(91,141,255,.28);
+  }
+  .btn.primary:hover { filter: brightness(1.06); }
+  .btn:disabled { opacity: .45; cursor: default; transform: none; }
+
+  /* ---------- benchmark ---------- */
+  .bench { display: flex; gap: 26px; align-items: center; flex-wrap: wrap; }
+  .gauge { position: relative; width: 158px; height: 158px; flex: none; }
+  .gauge svg { transform: rotate(-90deg); display: block; }
+  .gauge .track { fill: none; stroke: rgba(122,142,178,.16); stroke-width: 11; }
+  .gauge .prog {
+    fill: none; stroke: url(#gaugeGrad); stroke-width: 11; stroke-linecap: round;
+    transition: stroke-dashoffset .45s cubic-bezier(.4,0,.2,1);
+  }
+  .gauge-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .gauge-center .num { font-size: 38px; font-weight: 900; color: var(--score); line-height: 1; letter-spacing: -1px; }
+  .gauge-center .lbl { font-size: 11.5px; color: var(--muted); margin-top: 6px; letter-spacing: .5px; }
+  .bench-info { flex: 1; min-width: 260px; }
+  .bench-title { font-size: 16px; font-weight: 800; }
+  .bench-status { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  .bar { height: 7px; background: var(--soft); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin-top: 16px; }
+  .bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .3s ease; }
+  .bench-rows { margin-top: 18px; display: grid; gap: 8px; }
+  .bench-row {
+    display: grid; grid-template-columns: 158px 1fr auto; gap: 14px; align-items: center;
+    padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px;
+    background: var(--soft); transition: border-color .2s, background .2s;
+  }
+  .bench-row .n { font-weight: 700; font-size: 13.5px; }
+  .bench-row .d { color: var(--muted); font-size: 13px; }
+  .bench-row .s { font-weight: 900; color: var(--score); min-width: 66px; text-align: right; font-variant-numeric: tabular-nums; }
+  .bench-row.running { border-color: var(--accent); background: rgba(91,141,255,.08); }
+
+  /* ---------- sections ---------- */
+  .sections { display: grid; gap: 13px; margin-top: 20px; }
+  .section { background: var(--panel); border: 1px solid var(--line); border-radius: 15px; overflow: hidden; backdrop-filter: blur(12px); }
+  .section > summary {
+    list-style: none; cursor: pointer; padding: 15px 20px; font-weight: 800; font-size: 14.5px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    color: var(--text);
+  }
+  .section > summary::-webkit-details-marker { display: none; }
+  .section > summary::before {
+    content: ""; width: 3px; height: 15px; border-radius: 3px; flex: none;
+    background: linear-gradient(180deg, var(--accent), var(--accent-2));
+  }
+  .section > summary .ttl { flex: 1; }
+  .chev {
+    width: 8px; height: 8px; flex: none; margin-top: -4px;
+    border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg); transition: transform .22s;
+  }
+  .section[open] > summary .chev { transform: rotate(225deg); margin-top: 4px; }
+  .rows { padding: 2px 20px 16px; }
+  .row { display: grid; grid-template-columns: 220px 1fr; gap: 14px; padding: 9px 0; border-top: 1px dashed var(--line); }
+  .row:first-child { border-top: 0; }
+  .row .label { color: var(--muted); font-size: 13px; }
+  .row .value { font-size: 13px; font-weight: 700; word-break: break-word; }
+
+  /* ---------- download ---------- */
+  .dl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 16px; }
+  .dl-head { display: flex; align-items: center; gap: 14px; }
+  .dl-icon {
+    width: 50px; height: 50px; border-radius: 14px; flex: none;
+    display: grid; place-items: center; font-weight: 900; font-size: 13px; color: #06121f;
+    background: linear-gradient(135deg, #3ddc84, #2bb673);
+  }
+  .dl-icon.exe { background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .dl-name { font-weight: 800; font-size: 15.5px; }
+  .dl-meta { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 7px; margin: 16px 0; }
+  .badge {
+    font-size: 11.5px; color: var(--muted); border: 1px solid var(--line);
+    background: var(--soft); padding: 4px 10px; border-radius: 999px;
+  }
+  .dl-list { display: grid; grid-template-columns: 78px 1fr; gap: 8px 14px; font-size: 13px; margin: 18px 0 0; }
+  .dl-list dt { color: var(--muted); }
+  .dl-list dd { margin: 0; word-break: break-all; font-weight: 600; }
+  code { background: var(--soft); border: 1px solid var(--line); padding: 2px 7px; border-radius: 7px; font-size: 12px; }
+  .note { color: var(--muted); font-size: 12px; margin: 16px 0 0; }
+
+  .foot { color: var(--muted); font-size: 12px; margin-top: 30px; text-align: center; }
+  @media (max-width: 640px) {
+    .row { grid-template-columns: 1fr; gap: 2px; }
+    .bench-row { grid-template-columns: 1fr auto; }
+    .bench-row .d { grid-column: 1 / -1; }
+    .gauge { margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">DL</div>
+      <div>
+        <h1>设备检测实验室</h1>
+        <p class="tagline">浏览器在线检测 + Windows / 安卓客户端</p>
+      </div>
+    </div>
+    <div class="secure-pill" id="secure-pill">—</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="pc">电脑检测</button>
+    <button class="tab" data-tab="apk">客户端下载</button>
+  </div>
+
+  <section id="view-pc">
+    <div class="card">
+      <div class="summary-top">
+        <div>
+          <div class="summary-name" id="device-name">检测中…</div>
+          <div class="summary-sub" id="device-sub">正在读取浏览器可获取的硬件与系统信息</div>
+        </div>
+      </div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div class="toolbar">
+        <button class="btn" id="btn-refresh">重新检测</button>
+        <button class="btn primary" id="btn-bench">开始跑分</button>
+        <button class="btn" id="btn-copy">复制报告</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="bench">
+        <div class="gauge">
+          <svg width="158" height="158" viewBox="0 0 158 158">
+            <defs>
+              <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#5b8dff"/>
+                <stop offset="100%" stop-color="#31e3a7"/>
+              </linearGradient>
+            </defs>
+            <circle class="track" cx="79" cy="79" r="66"/>
+            <circle class="prog" id="gauge-ring" cx="79" cy="79" r="66"/>
+          </svg>
+          <div class="gauge-center">
+            <div class="num" id="score">—</div>
+            <div class="lbl">综合得分</div>
+          </div>
+        </div>
+        <div class="bench-info">
+          <div class="bench-title">性能跑分</div>
+          <div class="bench-status" id="bench-status">点击「开始跑分」，依次测试 CPU、内存、加密、图形与存储</div>
+          <div class="bar"><i id="bench-bar"></i></div>
+          <div class="bench-rows" id="bench-rows"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sections" id="sections"></div>
+  </section>
+
+  <section id="view-apk" class="hidden">
+    <div class="card">
+      <div class="dl-head">
+        <div class="dl-icon exe">DL</div>
+        <div>
+          <div class="dl-name">设备检测实验室 客户端</div>
+          <div class="dl-meta">Windows 电脑版 + 安卓手机版 · 一个入口</div>
+        </div>
+      </div>
+      <div class="badges">
+        <span class="badge">Windows 7+ 64 位</span>
+        <span class="badge">Android 7.0+</span>
+        <span class="badge">免安装</span>
+        <span class="badge">原生硬件信息</span>
+        <span class="badge">含性能跑分</span>
+      </div>
+      <a class="btn primary" id="btn-download" href="http://b-bu.cn/b01gic929e" target="_blank" rel="noopener noreferrer"
+         onclick="window.open('http://b-bu.cn/b01gic929e','_blank','noopener');return false;">立即下载</a>
+      <dl class="dl-list">
+        <dt>下载内容</dt><dd>Windows 电脑版 (DeviceLab-PC.exe) + 安卓手机版 (DeviceLab-v1.0.apk)</dd>
+        <dt>电脑版</dt><dd>Windows 7 及以上 64 位，双击运行后自动打开浏览器</dd>
+        <dt>手机版</dt><dd>Android 7.0 (API 24) 及以上，安装后读取传感器、电池、存储、GPU 等信息</dd>
+        <dt>退出方式</dt><dd>关闭电脑版弹出的黑色命令行窗口</dd>
+      </dl>
+      <p class="note">下载将跳转到外部地址。电脑版首次运行若被 SmartScreen 拦截，点击「更多信息」→「仍要运行」；手机版安装前请允许「未知来源应用」。</p>
+    </div>
+  </section>
+
+  <p class="foot">浏览器出于安全限制，只能暴露部分硬件信息（CPU 型号、内存条、硬盘型号无法读取）；标为「浏览器未提供」的项即为该限制所致，安装客户端可获得完整数据。</p>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
